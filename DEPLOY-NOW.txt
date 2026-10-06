@@ -1,0 +1,22 @@
+NEMAYESHGAH — راهنمای انتشار
+
+الف) Google Apps Script
+1. فایل google-apps-script/Code.gs را باز کن.
+2. کل کد آن را کپی کن.
+3. در Apps Script کد قبلی را کامل پاک کن و این کد را Paste کن.
+4. Save.
+5. Deploy → Manage deployments → ویرایش Deployment وب‌اپ و انتشار نسخه جدید.
+6. دسترسی را Anyone نگه دار.
+
+ب) GitHub
+1. یک Repository جدید بساز.
+2. فایل‌های این پروژه را در ریشه Repository آپلود کن.
+3. شاخه اصلی را main قرار بده.
+
+ج) فعال‌کردن سایت
+1. Settings → Pages.
+2. Source = GitHub Actions.
+3. به Actions برو و صبر کن تا Workflow سبز شود.
+4. آدرس سایت در همان صفحه Pages نمایش داده می‌شود.
+
+نکته: فایل public/config.js عمداً URL عمومی Google Apps Script را نگه می‌دارد. آن URL را خصوصی حساب نکن.
