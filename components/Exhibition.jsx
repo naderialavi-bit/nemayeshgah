@@ -73,30 +73,12 @@ function fitSize(image) {
 }
 
 async function loadImage(url) {
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`Image request failed: ${response.status}`);
-  }
-
-  const payload = await response.json();
-
-  if (!payload.ok || !payload.data) {
-    throw new Error(payload.error || "Image data is missing.");
-  }
-
   return new Promise((resolve, reject) => {
     const img = new Image();
-
     img.decoding = "async";
-
     img.onload = () => resolve(img);
-
-    img.onerror = () => {
-      reject(new Error("Cannot decode image."));
-    };
-
-    img.src = payload.data;
+    img.onerror = () => reject(new Error(`Cannot load ${url}`));
+    img.src = url;
   });
 }
 
