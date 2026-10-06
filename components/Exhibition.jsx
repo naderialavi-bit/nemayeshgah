@@ -142,9 +142,13 @@ function createParticleImage(image) {
   geometry.setAttribute("aRandom", new THREE.Float32BufferAttribute(randoms, 3));
   geometry.setAttribute("aSize", new THREE.Float32BufferAttribute(sizes, 1));
 
-  const texture = new THREE.Texture(image);
-  texture.needsUpdate = true;
-  texture.colorSpace = THREE.SRGBColorSpace;
+const texture = new THREE.Texture(image);
+texture.needsUpdate = true;
+texture.colorSpace = THREE.SRGBColorSpace;
+texture.wrapS = THREE.ClampToEdgeWrapping;
+texture.wrapT = THREE.ClampToEdgeWrapping;
+texture.minFilter = THREE.LinearFilter;
+texture.magFilter = THREE.LinearFilter;
 
   const plane = new THREE.Mesh(
     new THREE.PlaneGeometry(width, height),
