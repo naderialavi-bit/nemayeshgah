@@ -664,13 +664,8 @@ export default function Exhibition({
           <a
             class="more-link"
             href="${
-              process.env
-                .NEXT_PUBLIC_BASE_PATH ||
-              ""
-            }/artwork/?slug=${encodeURIComponent(
-              current.slug ||
-              current.title
-            )}"
+  process.env.NEXT_PUBLIC_BASE_PATH || ""
+}/artwork/?id=${encodeURIComponent(current.fileId)}"
           >
             مشاهده جزئیات اثر ←
           </a>
