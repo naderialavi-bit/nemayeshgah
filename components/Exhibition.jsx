@@ -9,8 +9,10 @@ const vertexShader = `
   uniform float uProgress;
   uniform float uTime;
   uniform float uPointSize;
+
   attribute vec3 aRandom;
   attribute float aSize;
+
   varying float vAlpha;
   varying vec3 vColor;
 
@@ -18,30 +20,43 @@ const vertexShader = `
     vec3 p = position;
 
     float scatter = smoothstep(0.0, 1.0, uProgress);
-    p += aRandom * (0.12 + scatter * (1.0 + aRandom.z * 1.4)) * scatter * 2.6;
 
-    p.x += sin(uTime * 0.7 + aRandom.z * 14.0) * 0.05 * scatter;
-    p.y += cos(uTime * 0.9 + aRandom.x * 11.0) * 0.05 * scatter;
-    p.z += sin(uTime * 0.6 + aRandom.y * 17.0) * 0.12 * scatter;
+    p += aRandom *
+      (0.12 + scatter * (1.0 + aRandom.z * 1.4))
+      * scatter * 2.6;
+
+    p.x += sin(uTime * 0.7 + aRandom.z * 14.0)
+      * 0.05 * scatter;
+
+    p.y += cos(uTime * 0.9 + aRandom.x * 11.0)
+      * 0.05 * scatter;
+
+    p.z += sin(uTime * 0.6 + aRandom.y * 17.0)
+      * 0.12 * scatter;
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
+
     gl_Position = projectionMatrix * mv;
 
     gl_PointSize =
-      uPointSize * aSize * (8.0 / max(0.1, -mv.z))
-      * (1.0 + scatter * 0.5);
+      uPointSize *
+      aSize *
+      (8.0 / max(0.1, -mv.z)) *
+      (1.0 + scatter * 0.5);
 
-    vAlpha = (1.0 - smoothstep(0.52, 1.0, scatter));
+    vAlpha = 1.0 - smoothstep(0.52, 1.0, scatter);
   }
 `;
 
 const fragmentShader = `
   precision highp float;
+
   varying float vAlpha;
   varying vec3 vColor;
 
   void main() {
     vec2 uv = gl_PointCoord - 0.5;
+
     float d = length(uv);
     float a = 1.0 - smoothstep(0.06, 0.5, d);
 
@@ -79,9 +94,10 @@ function fitSize(image) {
 }
 
 /*
-  دریافت تصویر از Google Apps Script
-  با JSONP و Data URL
-*/
+ * تصویر را از Google Apps Script می‌گیرد.
+ * پاسخ Apps Script به صورت JSONP است
+ * و داخل آن Data URL تصویر قرار دارد.
+ */
 async function loadImage(url) {
   return new Promise((resolve, reject) => {
     const callbackName =
@@ -174,10 +190,10 @@ function createParticleImage(image) {
   const { width, height } = fitSize(image);
 
   /*
-    اندازه نمونه‌برداری پایین نگه داشته شده تا
-    ساخت ذرات روی CPU سریع‌تر باشد.
-  */
-  const maxDim = window.innerWidth < 900 ? 120 : 150;
+   * نمونه‌برداری کوچک‌تر برای سرعت بیشتر.
+   */
+  const maxDim =
+    window.innerWidth < 900 ? 120 : 150;
 
   const ratio = Math.min(
     1,
@@ -192,16 +208,12 @@ function createParticleImage(image) {
 
   canvas.width = Math.max(
     2,
-    Math.floor(
-      image.naturalWidth * ratio
-    )
+    Math.floor(image.naturalWidth * ratio)
   );
 
   canvas.height = Math.max(
     2,
-    Math.floor(
-      image.naturalHeight * ratio
-    )
+    Math.floor(image.naturalHeight * ratio)
   );
 
   const ctx = canvas.getContext("2d", {
@@ -241,9 +253,6 @@ function createParticleImage(image) {
   const sizes = [];
   const colors = [];
 
-  /*
-    تعداد نقاط کمتر = لود و رندر سریع‌تر
-  */
   const step =
     window.innerWidth < 700 ? 3 : 2;
 
@@ -540,13 +549,22 @@ export default function Exhibition({
     let destroyed = false;
 
     /*
-      آرایه را از ابتدا می‌سازیم،
-      اما تصاویر را یکی‌یکی داخل آن قرار می‌دهیم.
-    */
-    let nodes =
-      new Array(artworks.length).fill(
-        null
-      );
+     * همه Nodeها از ابتدا null هستند.
+     * هر تصویر که آماده شود همان لحظه وارد Scene می‌شود.
+     */
+    const nodes =
+      new Array(
+        artworks.length
+      ).fill(null);
+
+    nodeRef.current =
+      nodes;
+
+    /*
+     * جلوگیری از درخواست تکراری تصویر.
+     */
+    const imagePromises =
+      new Map();
 
     let raf = 0;
 
@@ -597,8 +615,7 @@ export default function Exhibition({
       const nextOpacity =
         next && !reduced
           ? clamp(
-              (progress - 0.08) /
-                0.6,
+              (progress - 0.08) / 0.6,
               0,
               1
             )
@@ -607,7 +624,10 @@ export default function Exhibition({
       info.innerHTML = `
         <div
           class="info-current"
-          style="opacity:${currentOpacity};transform:translateY(${progress * 18}px)"
+          style="
+            opacity:${currentOpacity};
+            transform:translateY(${progress * 18}px)
+          "
         >
           <p class="kicker">
             ${String(
@@ -649,7 +669,7 @@ export default function Exhibition({
               ""
             }/artwork/?slug=${encodeURIComponent(
               current.slug ||
-                current.title
+              current.title
             )}"
           >
             مشاهده جزئیات اثر ←
@@ -658,46 +678,46 @@ export default function Exhibition({
 
         <div
           class="info-next"
-          style="opacity:${nextOpacity};transform:translateY(${(1 - nextOpacity) * 18}px)"
+          style="
+            opacity:${nextOpacity};
+            transform:translateY(${(1 - nextOpacity) * 18}px)
+          "
         >
           ${
             next
               ? `
-            <p class="kicker">
-              ${String(
-                next.order
-              ).padStart(
-                2,
-                "0"
-              )} / ARTWORK
-            </p>
+                <p class="kicker">
+                  ${String(
+                    next.order
+                  ).padStart(2, "0")} / ARTWORK
+                </p>
 
-            <h1>
-              ${escapeHTML(
-                next.title
-              )}
-            </h1>
+                <h1>
+                  ${escapeHTML(
+                    next.title
+                  )}
+                </h1>
 
-            <p class="description">
-              ${escapeHTML(
-                next.description
-              )}
-            </p>
+                <p class="description">
+                  ${escapeHTML(
+                    next.description
+                  )}
+                </p>
 
-            <div class="meta">
-              <span>
-                ${escapeHTML(
-                  next.year
-                )}
-              </span>
+                <div class="meta">
+                  <span>
+                    ${escapeHTML(
+                      next.year
+                    )}
+                  </span>
 
-              <span>
-                ${escapeHTML(
-                  next.technique
-                )}
-              </span>
-            </div>
-          `
+                  <span>
+                    ${escapeHTML(
+                      next.technique
+                    )}
+                  </span>
+                </div>
+              `
               : ""
           }
         </div>
@@ -707,13 +727,13 @@ export default function Exhibition({
         indexRef.current.textContent =
           String(
             index + 1
-          ).padStart(
-            2,
-            "0"
-          );
+          ).padStart(2, "0");
       }
     }
 
+    /*
+     * وضعیت نمایش را بر اساس Scroll محاسبه می‌کند.
+     */
     function update() {
       const index =
         clamp(
@@ -727,9 +747,11 @@ export default function Exhibition({
 
       let progress =
         clamp(
-          (scrollY -
+          (
+            scrollY -
             index *
-              innerHeight) /
+              innerHeight
+          ) /
             innerHeight,
           0,
           1
@@ -771,13 +793,11 @@ export default function Exhibition({
             ? 1
             : 1 - dissolve;
 
-        if (current.points) {
-          current.points.material
-            .uniforms
-            .uProgress
-            .value =
-            dissolve;
-        }
+        current.points.material
+          .uniforms
+          .uProgress
+          .value =
+          dissolve;
 
         current.group.scale.setScalar(
           1 +
@@ -800,12 +820,10 @@ export default function Exhibition({
         next.plane.material.opacity =
           reveal;
 
-        if (next.points) {
-          next.points.material
-            .uniforms
-            .uProgress
-            .value = 0;
-        }
+        next.points.material
+          .uniforms
+          .uProgress
+          .value = 0;
 
         next.group.scale.setScalar(
           1.035 -
@@ -818,231 +836,217 @@ export default function Exhibition({
         index,
         progress
       );
+
+      /*
+       * تصویر فعلی و بعدی را در صورت نیاز
+       * در پس‌زمینه درخواست می‌کنیم.
+       */
+      loadNode(index);
+      loadNode(index + 1);
     }
 
-    async function init() {
-      /*
-        متن فوراً نمایش داده می‌شود.
-        دیگر منتظر دانلود تصاویر نمی‌مانیم.
-      */
-      renderInfo(0, 0);
-
-      /*
-        اول فقط نقاشی اول را می‌گیریم.
-        این باعث می‌شود صفحه خیلی سریع‌تر قابل استفاده شود.
-      */
-      try {
-        const firstImage =
-          await loadImage(
-            getArtworkImageUrl(
-              artworks[0].fileId
-            )
-          );
-
-        if (destroyed) {
-          return;
-        }
-
-        nodes[0] =
-          createParticleImage(
-            firstImage
-          );
-
-        nodes[0].group.visible =
-          true;
-
-        stage.add(
-          nodes[0].group
-        );
-
-        nodeRef.current =
-          nodes;
-
-        update();
-      } catch (error) {
-        console.error(
-          "First artwork failed:",
-          error
-        );
+    /*
+     * یک تصویر را می‌گیرد و تبدیل به Node سه‌بعدی می‌کند.
+     */
+    async function loadNode(index) {
+      if (
+        destroyed ||
+        index < 0 ||
+        index >= artworks.length ||
+        nodes[index]
+      ) {
+        return;
       }
 
+      if (
+        imagePromises.has(index)
+      ) {
+        return imagePromises.get(index);
+      }
+
+      const promise =
+        (async () => {
+          try {
+            const image =
+              await loadImage(
+                getArtworkImageUrl(
+                  artworks[index].fileId
+                )
+              );
+
+            if (destroyed) {
+              return;
+            }
+
+            const node =
+              createParticleImage(
+                image
+              );
+
+            node.group.visible =
+              false;
+
+            nodes[index] =
+              node;
+
+            stage.add(
+              node.group
+            );
+
+            nodeRef.current =
+              nodes;
+
+            update();
+          } catch (error) {
+            console.error(
+              `Artwork ${index + 1} failed:`,
+              error
+            );
+          } finally {
+            imagePromises.delete(
+              index
+            );
+          }
+        })();
+
+      imagePromises.set(
+        index,
+        promise
+      );
+
+      return promise;
+    }
+
+    /*
+     * متن و رابط کاربری بلافاصله آماده می‌شوند.
+     */
+    renderInfo(0, 0);
+
+    /*
+     * Listenerها را همین الان فعال می‌کنیم،
+     * نه بعد از دانلود همه تصاویر.
+     */
+    const onScroll =
+      () => {
+        update();
+      };
+
+    const onResize =
+      () => {
+        camera.aspect =
+          innerWidth /
+          innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+          innerWidth,
+          innerHeight
+        );
+
+        renderer.setPixelRatio(
+          Math.min(
+            devicePixelRatio,
+            1.7
+          )
+        );
+
+        stage.position.x =
+          innerWidth < 900
+            ? 0
+            : 1.0;
+
+        stage.position.y =
+          innerWidth < 900
+            ? 0.9
+            : 0;
+
+        update();
+      };
+
+    addEventListener(
+      "scroll",
+      onScroll,
+      { passive: true }
+    );
+
+    addEventListener(
+      "resize",
+      onResize
+    );
+
+    /*
+     * اولین تصویر فوراً درخواست می‌شود.
+     */
+    loadNode(0);
+
+    /*
+     * تصویر دوم هم در پس‌زمینه شروع می‌شود.
+     * بقیه تصاویر بعداً با حرکت کاربر لود خواهند شد.
+     */
+    window.setTimeout(() => {
+      if (!destroyed) {
+        loadNode(1);
+      }
+    }, 250);
+
+    update();
+
+    /*
+     * حلقه Render همیشه فعال است.
+     */
+    function animate(time) {
       if (destroyed) {
         return;
       }
 
-      /*
-        بقیه تصاویر یکی‌یکی در پس‌زمینه لود می‌شوند.
-        بنابراین مرورگر همزمان درگیر ۷ درخواست بزرگ نمی‌شود.
-      */
-      for (
-        let i = 1;
-        i < artworks.length;
-        i++
-      ) {
-        if (destroyed) {
-          return;
-        }
+      const seconds =
+        time * 0.001;
 
-        try {
-          const image =
-            await loadImage(
-              getArtworkImageUrl(
-                artworks[i].fileId
-              )
-            );
-
-          if (destroyed) {
-            return;
+      nodes.forEach(
+        (node) => {
+          if (node?.points) {
+            node.points.material
+              .uniforms
+              .uTime
+              .value =
+              seconds;
           }
-
-          const node =
-            createParticleImage(
-              image
-            );
-
-          node.group.visible =
-            false;
-
-          nodes[i] =
-            node;
-
-          stage.add(
-            node.group
-          );
-
-          nodeRef.current =
-            nodes;
-
-          update();
-        } catch (error) {
-          console.error(
-            `Artwork ${i + 1} failed:`,
-            error
-          );
         }
-      }
-
-      const onScroll =
-        () => update();
-
-      const onResize =
-        () => {
-          camera.aspect =
-            innerWidth /
-            innerHeight;
-
-          camera.updateProjectionMatrix();
-
-          renderer.setSize(
-            innerWidth,
-            innerHeight
-          );
-
-          renderer.setPixelRatio(
-            Math.min(
-              devicePixelRatio,
-              1.7
-            )
-          );
-
-          stage.position.x =
-            innerWidth < 900
-              ? 0
-              : 1.0;
-
-          stage.position.y =
-            innerWidth < 900
-              ? 0.9
-              : 0;
-
-          update();
-        };
-
-      addEventListener(
-        "scroll",
-        onScroll,
-        { passive: true }
       );
 
-      addEventListener(
-        "resize",
-        onResize
+      renderer.render(
+        scene,
+        camera
       );
-
-      update();
-
-      function animate(time) {
-        if (destroyed) {
-          return;
-        }
-
-        const seconds =
-          time * 0.001;
-
-        nodes.forEach(
-          (node) => {
-            if (node?.points) {
-              node.points.material
-                .uniforms
-                .uTime
-                .value =
-                seconds;
-            }
-          }
-        );
-
-        renderer.render(
-          scene,
-          camera
-        );
-
-        raf =
-          requestAnimationFrame(
-            animate
-          );
-      }
 
       raf =
         requestAnimationFrame(
           animate
         );
-
-      return () => {
-        removeEventListener(
-          "scroll",
-          onScroll
-        );
-
-        removeEventListener(
-          "resize",
-          onResize
-        );
-
-        cancelAnimationFrame(
-          raf
-        );
-      };
     }
 
-    let cleanup = () => {};
-
-    init()
-      .then((fn) => {
-        if (fn) {
-          cleanup = fn;
-        }
-      })
-      .catch((error) => {
-        console.error(
-          "Pichart initialization failed:",
-          error
-        );
-      });
+    raf =
+      requestAnimationFrame(
+        animate
+      );
 
     return () => {
       destroyed = true;
 
-      cleanup();
+      removeEventListener(
+        "scroll",
+        onScroll
+      );
+
+      removeEventListener(
+        "resize",
+        onResize
+      );
+
+      cancelAnimationFrame(
+        raf
+      );
 
       nodes.forEach(
         (node) => {
@@ -1160,7 +1164,10 @@ export default function Exhibition({
       />
 
       <div className="scroll-hint">
-        <span>SCROLL</span>
+        <span>
+          SCROLL
+        </span>
+
         <span className="arrow">
           ↓
         </span>
