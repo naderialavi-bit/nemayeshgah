@@ -76,7 +76,6 @@ async function loadImage(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.decoding = "async";
-    img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error(`Cannot load ${url}`));
     img.src = url;
